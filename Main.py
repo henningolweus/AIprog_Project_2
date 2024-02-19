@@ -2,15 +2,21 @@ import numpy as np
 import random
 from Hex import HexBoard  # Assuming your HexBoard class is in hex_board.py
 from MCTS import MCTS
+from ANET import ANet
 
 
 def play_hex_with_mcts(board_size=4, iteration_limit=1000):
     game = HexBoard(board_size)
     mcts = MCTS(iteration_limit=iteration_limit)
-    current_player = game.current_player
+    anet = ANet(board_size=4, learning_rate=0.001, hidden_layers=[64, 64], activation='relu', optimizer_name='adam', num_cached_nets=10)
+    Replay_buffer = []
+
+    current_player = game.current_player # This is redunant as for now
 
     while True:
         print("Current board:")
+        print(game.get_nn_input(current_player))
+        Replay_buffer.append(game.get_nn_input(current_player))# Store the current board state for NN training
         game.render()
         if game.check_win(current_player):
             winner = "1" if game.check_win(1) else "2"
@@ -24,7 +30,7 @@ def play_hex_with_mcts(board_size=4, iteration_limit=1000):
         else:  # Player 2 uses MCTS
             move = mcts.UCT(game)
             game.make_move(*move, current_player)
-            print(game.get_nn_input(current_player))
+            
 
             print(f"MCTS played move: {move}")
 

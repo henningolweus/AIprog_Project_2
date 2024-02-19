@@ -39,8 +39,10 @@ class Node:
         self.wins += result
 
 class MCTS:
+   
     def __init__(self, iteration_limit=1000):
         self.iteration_limit = iteration_limit
+    
 
     def UCT(self, root_state):
         """
@@ -52,6 +54,7 @@ class MCTS:
         for _ in range(self.iteration_limit):
             node = root_node
             state = root_state.clone()  # Ensure you have a
+            self.rep
             # method to clone the game state in your HexBoard class
 
             # Select
