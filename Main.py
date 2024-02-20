@@ -31,7 +31,7 @@ def play_hex_with_mcts(board_size=4, iteration_limit=1000):
             game.make_move(row, col, current_player)
         else:  # Player 2 uses MCTS
             #move = mcts.UCT(game)
-            move, move_probabilities = mcts.UCT(game)
+            move, move_probabilities = mcts.MCTS_search(game)
             game.make_move(*move, current_player)
 
             print(f"MCTS calculates the following prob distribtution: {move_probabilities}")

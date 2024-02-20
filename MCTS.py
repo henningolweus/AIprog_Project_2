@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import math
 from Hex import HexBoard  # Assuming your HexBoard class is in hex_board.py
 
 class Node:
@@ -9,6 +10,7 @@ class Node:
         self.move = move
         self.children = []
         self.wins = 0
+        self.c = 1
         self.visits = 0
         self.untried_moves = game_state.get_legal_moves()
         self.player_just_moved = 3 - game_state.current_player  # Assuming current_player is 1 or 2
@@ -17,16 +19,15 @@ class Node:
         """
         Select a child node using the UCT (Upper Confidence bounds applied to Trees) metric.
         """
-        import math
         log_parent_visits = math.log(self.visits)
-        return max(self.children, key=lambda c: c.wins / c.visits + math.sqrt(2 * log_parent_visits / c.visits))
+        return max(self.children, key=lambda c: c.wins / (c.visits+1) + self.c*math.sqrt( log_parent_visits /(1+ c.visits)))
 
-    def AddChild(self, move, game_state):
+    def AddChild(self, move, new_game_state):
         """
         Remove the move from untried_moves and add a new child node for this move.
         Return the added child node.
         """
-        child = Node(game_state=game_state, parent=self, move=move)
+        child = Node(game_state=new_game_state, parent=self, move=move)
         self.untried_moves.remove(move)
         self.children.append(child)
         return child
@@ -42,13 +43,26 @@ class MCTS:
    
     def __init__(self, iteration_limit=1000):
         self.iteration_limit = iteration_limit
+        self.root_node = None
 
-    def UCT(self, root_state):
+
+    def MCTS_search(self, root_state):
         """
-        Conduct a UCT search for iteration_limit iterations starting from root_state.
+        Conduct a MCTS search for iteration_limit iterations starting from root_state.
         Return the best move from the root_state.
         """
-        root_node = Node(game_state=root_state)
+        changed_node = False
+        if self.root_node is not None:
+            for child in root_node.children:
+                if child.game_state == root_state:
+                    changed_node = True
+                    root_node = child
+                    break
+        else:
+            self.root_node = Node(game_state=root_state)
+        
+        if not changed_node:
+            print("NODE NOT FOUND")
 
         for _ in range(self.iteration_limit):
             node = root_node
@@ -76,9 +90,10 @@ class MCTS:
                 node.Update(state.get_result(node.player_just_moved))  # state is terminal. Update node with result from POV of node.playerJustMoved
                 node = node.parent
             move_probabilities = self.calculateMoveProbabilities(root_node)
-            best_move = max(root_node.children, key=lambda c: c.visits).move
+            best_node = max(root_node.children, key=lambda c: c.visits)
+            best_move = best_node.move
 
-        
+        self.root_node = best_node
         # Return the move that was most visited
         return best_move, move_probabilities
     
@@ -120,3 +135,4 @@ class ReplayBuffer:
         for i, (state, prob_dist) in enumerate(self.buffer):
             buffer_contents += f'  Item {i+1}: State = {state}, Prob. Dist. = {prob_dist}\n'
         return buffer_contents
+
