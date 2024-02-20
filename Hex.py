@@ -8,6 +8,11 @@ class HexBoard:
         self.board = np.zeros((size, size, 2), dtype=int)
         self.current_player = starting_player  # brukes 
 
+    def __eq__(self, other):
+        if not isinstance(other, HexBoard):
+            return NotImplemented
+        return (np.array_equal(self.board, other.board) and 
+                self.current_player == other.current_player)
 
     def render(self):
         """Render the board to the console in a more visually intuitive diamond shape."""

@@ -51,21 +51,24 @@ class MCTS:
         Conduct a MCTS search for iteration_limit iterations starting from root_state.
         Return the best move from the root_state.
         """
+        
+
         changed_node = False
+
         if self.root_node is not None:
-            for child in root_node.children:
-                if child.game_state == root_state:
+            for child in self.root_node.children:
+                if root_state.__eq__(child.game_state):
                     changed_node = True
-                    root_node = child
+                    self.root_node = child
                     break
         else:
             self.root_node = Node(game_state=root_state)
-        
+
         if not changed_node:
             print("NODE NOT FOUND")
 
         for _ in range(self.iteration_limit):
-            node = root_node
+            node = self.root_node
             state = root_state.clone()  # Ensure you have a
             # method to clone the game state in your HexBoard class
 
@@ -89,8 +92,8 @@ class MCTS:
             while node is not None:  # backpropagate from the expanded node and work back to the root node
                 node.Update(state.get_result(node.player_just_moved))  # state is terminal. Update node with result from POV of node.playerJustMoved
                 node = node.parent
-            move_probabilities = self.calculateMoveProbabilities(root_node)
-            best_node = max(root_node.children, key=lambda c: c.visits)
+            move_probabilities = self.calculateMoveProbabilities(self.root_node)
+            best_node = max(self.root_node.children, key=lambda c: c.visits)
             best_move = best_node.move
 
         self.root_node = best_node
