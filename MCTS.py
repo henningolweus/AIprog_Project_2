@@ -42,7 +42,6 @@ class MCTS:
    
     def __init__(self, iteration_limit=1000):
         self.iteration_limit = iteration_limit
-    
 
     def UCT(self, root_state):
         """
@@ -54,7 +53,6 @@ class MCTS:
         for _ in range(self.iteration_limit):
             node = root_node
             state = root_state.clone()  # Ensure you have a
-            self.rep
             # method to clone the game state in your HexBoard class
 
             # Select
@@ -77,8 +75,48 @@ class MCTS:
             while node is not None:  # backpropagate from the expanded node and work back to the root node
                 node.Update(state.get_result(node.player_just_moved))  # state is terminal. Update node with result from POV of node.playerJustMoved
                 node = node.parent
+            move_probabilities = self.calculateMoveProbabilities(root_node)
+            best_move = max(root_node.children, key=lambda c: c.visits).move
 
+        
         # Return the move that was most visited
-        return max(root_node.children, key=lambda c: c.visits).move
+        return best_move, move_probabilities
+    
+    
+    def calculateMoveProbabilities(self, root_node):
+        """
+        Generate a probability distribution over moves based on visit counts of child nodes of the root.
+        """
+        total_visits = sum(child.visits for child in root_node.children)
+        move_probabilities = {child.move: child.visits / total_visits for child in root_node.children}
+        return move_probabilities
 
 
+
+class ReplayBuffer:
+    def __init__(self, capacity=10000):
+        self.capacity = capacity
+        self.buffer = []
+        self.position = 0
+
+    def push(self, state, prob_dist):
+        if len(self.buffer) < self.capacity:
+            self.buffer.append(None)
+        # Store state and MCTS probability distribution
+        self.buffer[self.position] = (state, prob_dist)
+        self.position = (self.position + 1) % self.capacity
+
+    def sample(self, batch_size):
+        batch = random.sample(self.buffer, batch_size)
+        state, prob_dist = map(np.stack, zip(*batch))
+        return state, prob_dist
+
+    def __len__(self):
+        return len(self.buffer)
+    
+    def __str__(self):
+        buffer_contents = f'Replay Buffer Size: {len(self.buffer)}/{self.capacity}\n'
+        buffer_contents += 'Contents:\n'
+        for i, (state, prob_dist) in enumerate(self.buffer):
+            buffer_contents += f'  Item {i+1}: State = {state}, Prob. Dist. = {prob_dist}\n'
+        return buffer_contents
