@@ -41,9 +41,40 @@ class Node:
 
 class MCTS:
    
-    def __init__(self, iteration_limit=1000):
+    def __init__(self, iteration_limit=30):
         self.iteration_limit = iteration_limit
         self.root_node = None
+
+    def tree_policy(self, node):
+        while node.children != []:
+            node = node.UCTSelectChild()
+        return node
+
+    def expand(self, node):
+        if node.untried_moves != []:
+            move = random.choice(node.untried_moves)
+            new_game_state = node.game_state.clone()
+            new_game_state.make_move(*move, node.player_just_moved)
+            node.AddChild(random.choice(node.untried_moves), new_game_state)
+        else :
+            print("NO UNTRIED MOVES")
+
+    def rollout(self, node):
+        print(node.children)
+        node = node.children[0]
+        while node.untried_moves != [] and node.game_state.check_win(node.player_just_moved):
+            move = random.choice(node.untried_moves)
+            new_game_state = node.game_state.clone()
+            new_game_state.make_move(*move, node.player_just_moved)
+            node.AddChild(random.choice(node.untried_moves), new_game_state)
+            node = node.children[0]
+        return node
+    
+    def backpropagate(self, node, result):
+        while node is not None:  # backpropagate from the expanded node and work back to the root node
+            node.Update(result)  # state is terminal. Update node with result from POV of node.playerJustMoved
+            node = node.parent
+
 
 
     def MCTS_search(self, root_state):
@@ -51,7 +82,7 @@ class MCTS:
         Conduct a MCTS search for iteration_limit iterations starting from root_state.
         Return the best move from the root_state.
         """
-        
+        root_state = root_state.clone()
 
         changed_node = False
 
@@ -64,37 +95,30 @@ class MCTS:
         else:
             self.root_node = Node(game_state=root_state)
 
+
         if not changed_node:
             print("NODE NOT FOUND")
 
         for _ in range(self.iteration_limit):
-            node = self.root_node
-            state = root_state.clone()  # Ensure you have a
-            # method to clone the game state in your HexBoard class
 
             # Select
-            while node.untried_moves == [] and node.children != []:  # node is fully expanded and non-terminal
-                node = node.UCTSelectChild()
-                state.make_move(*node.move, state.current_player)
+            leaf_node = self.tree_policy(self.root_node)
 
             # Expand
-            if node.untried_moves:  # if we can expand (i.e. state/node is non-terminal)
-                move = random.choice(node.untried_moves) 
-                next_state = state.clone()
-                next_state.make_move(*move, next_state.current_player)
-                node = node.AddChild(move, next_state)  # add child and descend tree
+            self.expand(leaf_node)
 
             # Rollout - this can often be made orders of magnitude quicker using a state.GetRandomMove() function
-            while state.get_legal_moves():  # while state is non-terminal
-                state.make_move(*random.choice(state.get_legal_moves()), state.current_player)
+            final_node = self.rollout(leaf_node)
+            result = final_node.game_state.get_result(final_node.player_just_moved)
 
             # Backpropagate
-            while node is not None:  # backpropagate from the expanded node and work back to the root node
-                node.Update(state.get_result(node.player_just_moved))  # state is terminal. Update node with result from POV of node.playerJustMoved
-                node = node.parent
+            self.backpropagate(final_node, result)
             move_probabilities = self.calculateMoveProbabilities(self.root_node)
             best_node = max(self.root_node.children, key=lambda c: c.visits)
             best_move = best_node.move
+
+            # Remove the child node of the leaf node
+            leaf_node.children[0].children = []
 
         self.root_node = best_node
         # Return the move that was most visited
