@@ -81,10 +81,12 @@ class HexBoard:
         :param player_just_moved: The player who made the last move.
         :return: 1 if 'player_just_moved' has won, -1 otherwise.
         """
-        if self.check_win(player_just_moved):
+        if self.check_win(player_just_moved) and player_just_moved == 1:
             return 1  # The player who just moved has won the game.
+        elif self.check_win(player_just_moved) and player_just_moved == 2:
+            return -1  # The player who just moved has won the game.
         else:
-            return -1  # The player who just moved did not win (assuming two-player game with no draws).
+            return 0  # Noone won
 
     # Remember to update or add other necessary methods.
 
@@ -107,6 +109,13 @@ class HexBoard:
             return False  # Move is illegal if it's not in the list of legal moves.
         self.board[row, col] = [1, 0] if player == 1 else [0, 1]
         return True
+    def is_game_over(self):
+        """
+        Checks if the game is a draw.
+        A draw occurs if the board is full and no player has won.
+        Returns True if the game is a draw, False otherwise.
+        """
+        return all(np.all(cell != [0, 0]) for cell in self.board.flatten()) or self.check_win(1) or self.check_win(2)
 
     def check_win(self, player):
         """
