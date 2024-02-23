@@ -8,11 +8,34 @@ class HexBoard:
         self.board = np.zeros((size, size, 2), dtype=int)
         self.current_player = starting_player  # brukes 
 
+    """
     def __eq__(self, other):
         if not isinstance(other, HexBoard):
             return NotImplemented
         return (np.array_equal(self.board, other.board) and 
                 self.current_player == other.current_player)
+    """
+    def __eq__(self, other):
+        if not isinstance(other, HexBoard):
+            print("Comparison failed: The other object is not an instance of HexBoard.")
+            return False
+        
+        boards_equal = np.array_equal(self.board, other.board)
+        players_equal = (self.current_player == other.current_player)
+        
+        if not boards_equal or not players_equal:
+            print("Comparison details:")
+            print(f"Boards equal: {boards_equal}")
+            if not boards_equal:
+                print("Self board:")
+                print(self.board)
+                print("Other board:")
+                print(other.board)
+                
+            print(f"Current players equal: {players_equal}")
+            print(f"Self current player: {self.current_player}, Other current player: {other.current_player}")
+        
+        return boards_equal and players_equal
 
     def render(self):
         """Render the board to the console in a more visually intuitive diamond shape."""
@@ -108,6 +131,7 @@ class HexBoard:
         if (row, col) not in self.get_legal_moves():
             return False  # Move is illegal if it's not in the list of legal moves.
         self.board[row, col] = [1, 0] if player == 1 else [0, 1]
+        self.current_player = 2 if player == 1 else 1 # Moved the logic inside this function
         return True
     def is_game_over(self):
         """

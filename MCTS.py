@@ -13,7 +13,10 @@ class Node:
         self.c = 1
         self.visits = 0
         self.untried_moves = game_state.get_legal_moves()
+        self.current_player = game_state.current_player
         self.player_just_moved = 3 - game_state.current_player  # Assuming current_player is 1 or 2
+
+
 
     def UCTSelectChild(self):
         """
@@ -44,7 +47,7 @@ class Node:
 
 class MCTS:
    
-    def __init__(self, iteration_limit=30):
+    def __init__(self, iteration_limit):
         self.iteration_limit = iteration_limit
         self.root_node = None
 
@@ -52,7 +55,26 @@ class MCTS:
         while node.children != [] and (not node.game_state.check_win(1) ) and (not node.game_state.check_win(2) ):
             node = node.UCTSelectChild()
         return node
+    
+    """
+    def expand(self, node):
+        legal_moves = node.game_state.get_legal_moves()  # Refresh the list of legal moves if necessary
+        while node.untried_moves:
+            move = random.choice(node.untried_moves)  # Randomly select a move
+            if move in legal_moves:  # Ensure the move is still legal 
+                new_game_state = node.game_state.clone()
+                new_game_state.make_move(*move, node.player_just_moved)
+                node.AddChild(move, new_game_state)
+            else:
+                # This else block is optional and can be used for debugging
+                print(f"Attempted to expand an illegal or already tried move: {move}")
+                node.untried_moves.remove(move)  # Remove the move to prevent future attempts
 
+        if not node.children:
+            print("No legal moves were available for expansion or all moves have been tried.")
+
+
+        """
     def expand(self, node):
         if node.untried_moves != []:
             while node.untried_moves != []:
@@ -60,10 +82,12 @@ class MCTS:
                 print(move)
                 print("MOVE JUST EXPANDED")
                 new_game_state = node.game_state.clone()
-                new_game_state.make_move(*move, node.player_just_moved)
+                new_game_state.make_move(*move, node.current_player) #Changed this to current
                 node.AddChild(move, new_game_state)
         else :
             print("NO UNTRIED MOVES")
+
+        
 
     def rollout(self, node):
         """
@@ -116,6 +140,7 @@ class MCTS:
                 if root_state.__eq__(child.game_state):
                     changed_node = True
                     self.root_node = child
+                    print("ROOT NODE CHANGED")
                     break
         else:
             self.root_node = Node(game_state=root_state)
@@ -131,32 +156,64 @@ class MCTS:
 
             # Expand
             self.expand(leaf_node)
+            #New Rollout. It also handels the case where there are no children
+            if leaf_node.children:
+                node_for_rollout = random.choice(leaf_node.children)
+                result = self.rollout(node_for_rollout)
+            else:
+                # If no children, perform rollout from the leaf node itself
+                result = self.rollout(leaf_node)
+            self.backpropagate(leaf_node, result)
 
             # Rollout - this can often be made orders of magnitude quicker using a state.GetRandomMove() function
-            node_for_rollout = random.choice(leaf_node.children)
-            result = self.rollout(node_for_rollout)
+            #node_for_rollout = random.choice(leaf_node.children)
+            #result = self.rollout(node_for_rollout)
+            print("The result of the rollout is: ", result)
 
             # Backpropagate
             self.backpropagate(leaf_node, result)
             move_probabilities = self.calculateMoveProbabilities(self.root_node)
-            best_node = max(self.root_node.children, key=lambda c: c.visits)
-            best_move = best_node.move
 
-            # # Remove the child node of the leaf node
-            # leaf_node.children[0].children = []
+        # Sort children by visits to get a list from most visited to least
+        sorted_children = sorted(self.root_node.children, key=lambda c: c.visits, reverse=True)
+        
+        # Find the first legal move among the sorted children
+        legal_moves = root_state.get_legal_moves()
+        for child in sorted_children:
+            if child.move in legal_moves:
+                best_move = child.move
+                # Since this move is selected, we update the root_node to this child for future searches
+                self.root_node = child
+                break
+        else:
+            print("No legal moves found in MCTS search. This should not happen if the game is not over.")
+            best_move = None  # Fallback case, should not happen if there are legal moves available
 
-        self.root_node = best_node
-        # Return the move that was most visited
         return best_move, move_probabilities
-    
-    
+        
+
     def calculateMoveProbabilities(self, root_node):
         """
         Generate a probability distribution over moves based on visit counts of child nodes of the root.
+        Adjusted to handle the case where total_visits is zero by returning a uniform distribution or other logic.
         """
         total_visits = sum(child.visits for child in root_node.children)
-        move_probabilities = {child.move: child.visits / total_visits for child in root_node.children}
+        if total_visits == 0:
+            # Handle the case where there are no visits to any children.
+            # Option 1: Return a uniform distribution among all children.
+            num_children = len(root_node.children)
+            if num_children == 0:
+                return {}  # Handle the case with no children.
+            uniform_probability = 1 / num_children
+            move_probabilities = {child.move: uniform_probability for child in root_node.children}
+        else:
+            # Normal case, where we calculate probabilities based on visits.
+            move_probabilities = {child.move: child.visits / total_visits for child in root_node.children}
         return move_probabilities
+    
+
+
+
 
 
 
