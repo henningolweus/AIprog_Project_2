@@ -2,6 +2,7 @@ import numpy as np
 import random
 import math
 from Hex import HexBoard  # Assuming your HexBoard class is in hex_board.py
+from ANET import ANet
 
 class Node:
     def __init__(self, game_state, parent=None, move=None):
@@ -14,7 +15,8 @@ class Node:
         self.visits = 0
         self.untried_moves = game_state.get_legal_moves()
         self.current_player = game_state.current_player
-        self.player_just_moved = 3 - game_state.current_player  # Assuming current_player is 1 or 2
+        self.opponent_player = 3 - game_state.current_player  # Assuming current_player is 1 or 2
+        self.predicted_move_probabilities = None
 
 
 
@@ -23,7 +25,7 @@ class Node:
         Select a child node using the UCT (Upper Confidence bounds applied to Trees) metric.
         """
         log_parent_visits = math.log(self.visits)
-        if self.player_just_moved == 1:
+        if self.current_player == 2:
             return max(self.children, key=lambda c: c.wins / (c.visits+1) + self.c*math.sqrt( log_parent_visits /(1+ c.visits)))
         else:
             return min(self.children, key=lambda c: c.wins / (c.visits+1) - self.c*math.sqrt( log_parent_visits /(1+ c.visits)))
@@ -47,9 +49,11 @@ class Node:
 
 class MCTS:
    
-    def __init__(self, iteration_limit):
+    def __init__(self, iteration_limit, anet=None, player=2):
         self.iteration_limit = iteration_limit
         self.root_node = None
+        self.anet = anet
+        self.player = 2
 
     def tree_policy(self, node):
         while node.children != [] and (not node.game_state.check_win(1) ) and (not node.game_state.check_win(2) ):
@@ -63,7 +67,7 @@ class MCTS:
             move = random.choice(node.untried_moves)  # Randomly select a move
             if move in legal_moves:  # Ensure the move is still legal 
                 new_game_state = node.game_state.clone()
-                new_game_state.make_move(*move, node.player_just_moved)
+                new_game_state.make_move(*move, node.opponent_player)  # Make the move for the opponent (opponent_player is the player who just moved
                 node.AddChild(move, new_game_state)
             else:
                 # This else block is optional and can be used for debugging
@@ -87,25 +91,55 @@ class MCTS:
         else :
             print("NO UNTRIED MOVES")
 
+    def select_move_based_on_probabilities(self, legal_moves, move_probabilities, board_size):
+        """
+        Select a move based on normalized probabilities, excluding illegal moves.
         
+        Parameters:
+        - legal_moves: List of tuples representing legal moves (e.g., [(row1, col1), (row2, col2), ...]).
+        - move_probabilities: Numpy array of probabilities predicted by ANet for all moves.
+        
+        Returns:
+        - A tuple representing the selected move.
+        """
+        move_probabilities = move_probabilities.flatten()
+        
+        # Convert legal moves to indices in the probability array
+        legal_indices = [row * board_size + col for row, col in legal_moves]
+        
+        # Filter and normalize probabilities for legal moves
+        filtered_probs = np.zeros(move_probabilities.shape)
+        filtered_probs[legal_indices] = move_probabilities[legal_indices]
+        normalized_probs = filtered_probs / np.sum(filtered_probs)
+        
+        # Select a move based on the normalized probabilities
+        selected_index = np.random.choice(len(normalized_probs), p=normalized_probs)
+        selected_move = divmod(selected_index, board_size)  # Convert index back to row, col format
+        
+        return selected_move
 
-    def rollout(self, node):
+    def rollout(self, node, randomChoice = False):
         """
         Simulate the game from the current node's state until a terminal state is reached.
         A simpler policy (e.g., random moves) is used for the simulation.
         The result of the simulation is returned.
         """
         current_game_state = node.game_state.clone()
-        current_player = node.player_just_moved
+        current_player = node.current_player
 
         while not current_game_state.is_game_over():
             # Get all legal moves for the current state
             legal_moves = current_game_state.get_legal_moves()
             if not legal_moves:
                 break  # If there are no legal moves, exit the loop
-            
-            # Select a random move from the legal moves
-            move = random.choice(legal_moves)
+            if randomChoice:
+                # Select a random move from the legal moves
+                move = random.choice(legal_moves)
+            else:
+                nn_input = current_game_state.get_nn_input(current_player)
+                move_probabilities = self.anet.predict(nn_input)
+                board_size = current_game_state.get_board_size()
+                move = self.select_move_based_on_probabilities(legal_moves,move_probabilities, board_size)
             # Make the move on a cloned state to simulate the game without affecting the actual game tree
             current_game_state.make_move(*move, current_player)
             # Switch to the other player
@@ -113,9 +147,9 @@ class MCTS:
 
         # Return the result of the game from the perspective of the node's player
         # If the current game state's winner is the node's player, return 1, else return -1
-        if current_game_state.check_win(node.player_just_moved):
-            return 1  # Node's player wins
-        elif current_game_state.check_win(3 - node.player_just_moved):
+        if current_game_state.check_win(node.current_player):
+            return 1  # Player wins
+        elif current_game_state.check_win(3 - node.current_player):
             return -1  # Opponent wins
         else:
             return 0  # Draw or incomplete game
@@ -159,7 +193,7 @@ class MCTS:
             #New Rollout. It also handels the case where there are no children
             if leaf_node.children:
                 node_for_rollout = random.choice(leaf_node.children)
-                result = self.rollout(node_for_rollout)
+                result = self.rollout(node_for_rollout, randomChoice=False)
             else:
                 # If no children, perform rollout from the leaf node itself
                 result = self.rollout(leaf_node)

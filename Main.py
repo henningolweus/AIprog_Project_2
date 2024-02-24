@@ -5,11 +5,12 @@ from MCTS import MCTS, ReplayBuffer
 from ANET import ANet
 
 
-def play_hex_with_mcts(board_size=4, iteration_limit=500):
+def play_hex_with_mcts(board_size=4, iteration_limit=100):
     iteration_limit=iteration_limit
     game = HexBoard(board_size)
-    mcts = MCTS(iteration_limit=iteration_limit)
     anet = ANet(board_size=4, learning_rate=0.001, hidden_layers=[64, 64], activation='relu', optimizer_name='adam', num_cached_nets=10)
+    mcts = MCTS(iteration_limit=iteration_limit, anet=anet)
+    
     Replay_buffer = ReplayBuffer()
 
     current_player = game.current_player # This is redunant as for now

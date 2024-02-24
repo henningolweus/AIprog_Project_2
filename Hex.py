@@ -36,6 +36,9 @@ class HexBoard:
             print(f"Self current player: {self.current_player}, Other current player: {other.current_player}")
         
         return boards_equal and players_equal
+    
+    def get_board_size(self):
+        return self.size
 
     def render(self):
         """Render the board to the console in a more visually intuitive diamond shape."""
@@ -72,21 +75,28 @@ class HexBoard:
         # Adding East and West markers
         print(" " * 2 + "W" + " " * (self.size * 4 - 5) + "E")
 
+    # def get_nn_input(self, current_player):
+    #     """Generate a neural network input array that distinguishes Player 1 and Player 2 placements,
+    #     and return it as a comma-separated string."""
+    #     # Flatten the board to create a single array
+    #     flat_board = self.board.flatten()
+
+    #     # Add the current player identifier at the end of the flattened board
+    #     # Using 1 to indicate Player 1's turn, and -1 for Player 2's turn
+    #     current_player_indicator = 1 if current_player == 1 else -1
+    #     nn_input = np.append(flat_board, current_player_indicator)
+
+    #     # Convert the numpy array to a string with commas separating the values
+    #     nn_input_str = ','.join(map(str, nn_input))
+
+    #     return nn_input_str
     def get_nn_input(self, current_player):
-        """Generate a neural network input array that distinguishes Player 1 and Player 2 placements,
-        and return it as a comma-separated string."""
         # Flatten the board to create a single array
         flat_board = self.board.flatten()
-
-        # Add the current player identifier at the end of the flattened board
-        # Using 1 to indicate Player 1's turn, and -1 for Player 2's turn
+        # Add the current player indicator at the end of the flattened board
         current_player_indicator = 1 if current_player == 1 else -1
         nn_input = np.append(flat_board, current_player_indicator)
-
-        # Convert the numpy array to a string with commas separating the values
-        nn_input_str = ','.join(map(str, nn_input))
-
-        return nn_input_str
+        return nn_input  # Return as NumPy array
 
     
     def clone(self):
