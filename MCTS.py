@@ -25,10 +25,7 @@ class Node:
         Select a child node using the UCT (Upper Confidence bounds applied to Trees) metric.
         """
         log_parent_visits = math.log(self.visits)
-        if self.current_player == 2:
-            return max(self.children, key=lambda c: c.wins / (c.visits+1) + self.c*math.sqrt( log_parent_visits /(1+ c.visits)))
-        else:
-            return min(self.children, key=lambda c: c.wins / (c.visits+1) - self.c*math.sqrt( log_parent_visits /(1+ c.visits)))
+        return max(self.children, key=lambda c: c.wins / (c.visits + 1) + self.c * math.sqrt(log_parent_visits / (1 + c.visits)))
 
     def AddChild(self, move, new_game_state):
         """
@@ -40,12 +37,18 @@ class Node:
         self.children.append(child)
         return child
 
-    def Update(self, result):
+    def Update(self, result, leaf_node_player):
         """
         Update this node's data from the result of a simulation.
         """
         self.visits += 1
-        self.wins += result
+        if self.current_player == leaf_node_player:
+            # The game_state's current player is the same as the node's player
+            # This means the result is already from the correct perspective
+            self.wins += result
+        else:
+            # The result is from the opponent's perspective; invert it for the current player's perspective
+            self.wins -= result  # Invert the result
 
 class MCTS:
    
@@ -83,13 +86,14 @@ class MCTS:
         if node.untried_moves != []:
             while node.untried_moves != []:
                 move = random.choice(node.untried_moves)
-                print(move)
-                print("MOVE JUST EXPANDED")
+                # print(move)
+                # print("MOVE JUST EXPANDED")
                 new_game_state = node.game_state.clone()
                 new_game_state.make_move(*move, node.current_player) #Changed this to current
                 node.AddChild(move, new_game_state)
         else :
-            print("NO UNTRIED MOVES")
+            #print("NO UNTRIED MOVES")'
+            pass
 
     def select_move_based_on_probabilities(self, legal_moves, move_probabilities, board_size):
         """
@@ -155,8 +159,9 @@ class MCTS:
             return 0  # Draw or incomplete game
     
     def backpropagate(self, node, result):
+        leaf_node_player = node.current_player
         while node is not None:  # backpropagate from the expanded node and work back to the root node
-            node.Update(result)  # state is terminal. Update node with result from POV of node.playerJustMoved
+            node.Update(result, leaf_node_player)  # state is terminal. Update node with result from POV of node.playerJustMoved
             node = node.parent
 
 
@@ -167,20 +172,24 @@ class MCTS:
         Return the best move from the root_state.
         """
         root_state = root_state.clone()
-        changed_node = False
+        found_node = False
 
         if self.root_node is not None:
-            for child in self.root_node.children:
-                if root_state.__eq__(child.game_state):
-                    changed_node = True
-                    self.root_node = child
-                    print("ROOT NODE CHANGED")
-                    break
+            if root_state.__eq__(self.root_node.game_state):
+                #print("ROOT NODE FOUND. WAS INITIAL NODE")
+                found_node = True
+            else:
+                for child in self.root_node.children:
+                    if root_state.__eq__(child.game_state):
+                        found_node = True
+                        self.root_node = child
+                        #print("ROOT NODE FOUND. WAS CHILD NODE")
+                        break
         else:
             self.root_node = Node(game_state=root_state)
 
 
-        if not changed_node:
+        if not found_node:
             print("PLAYED NODE NOT FOUND IN TREE")
 
         for _ in range(self.iteration_limit):
@@ -192,7 +201,7 @@ class MCTS:
             self.expand(leaf_node)
             #New Rollout. It also handels the case where there are no children
             if leaf_node.children:
-                node_for_rollout = random.choice(leaf_node.children)
+                node_for_rollout = random.choice(leaf_node.children) #MUST BE CHANGED TO SELECT THE BEST CHILD
                 result = self.rollout(node_for_rollout, randomChoice=False)
             else:
                 # If no children, perform rollout from the leaf node itself
@@ -202,7 +211,7 @@ class MCTS:
             # Rollout - this can often be made orders of magnitude quicker using a state.GetRandomMove() function
             #node_for_rollout = random.choice(leaf_node.children)
             #result = self.rollout(node_for_rollout)
-            print("The result of the rollout is: ", result)
+            # print("Iteration:" + str(_) + "/" + str(self.iteration_limit)+ "The result of the rollout is: ", result)
 
             # Backpropagate
             self.backpropagate(leaf_node, result)
