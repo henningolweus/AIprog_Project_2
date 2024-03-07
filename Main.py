@@ -7,8 +7,8 @@ from ANET import ANet
 
 def play_hex_with_mcts(board_size=4, iteration_limit=100):
     game_counter = 0
-    save_interval = 50
-    total_games = 200
+    save_interval = 20
+    total_games = 100
     iteration_limit=iteration_limit
     anet = ANet(board_size=4, learning_rate=0.001, hidden_layers=[64, 64], activation='relu', optimizer_name='adam', num_cached_nets=10)
     batch_size = 32  # This can be adjusted based on your needs and dataset size.
@@ -58,10 +58,10 @@ def play_hex_with_mcts(board_size=4, iteration_limit=100):
                 break
             
             current_player = 2 if current_player == 1 else 1
-        
+        game_counter+=1
         states, target_probs_dicts = Replay_buffer.sample(batch_size)
         target_probs = np.array([Replay_buffer.convert_probs_to_array(prob_dict, board_size = board_size) for prob_dict in target_probs_dicts])
-        print(target_probs)
+        print(states)
         anet.train(states, target_probs, epochs=num_epochs)
         print("Player 2 win ratio: ", player2_wins/(game_index+1))
         if game_counter % save_interval == 0: 
