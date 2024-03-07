@@ -281,6 +281,19 @@ class ReplayBuffer:
     def __len__(self):
         return len(self.buffer)
     
+    def convert_probs_to_array(self, probs_dict, board_size=4):
+        # Initialize an array of zeros for each move's probability
+        probs_array = np.zeros(board_size**2)
+        
+        # Iterate over each move-probability pair in the dictionary
+        for move, prob in probs_dict.items():
+            # Calculate the index in the array corresponding to the move
+            index = move[0] * board_size + move[1]
+            # Set the probability in the corresponding array position
+            probs_array[index] = prob
+        
+        return probs_array
+    
     def __str__(self):
         buffer_contents = f'Replay Buffer Size: {len(self.buffer)}/{self.capacity}\n'
         buffer_contents += 'Contents:\n'
