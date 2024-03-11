@@ -1,6 +1,7 @@
 import unittest
 from MCTS import MCTS
 from Hex import HexBoard
+from ANET import ANet
 
 class TestMCTS(unittest.TestCase):
     def test_mcts_search(self):
@@ -18,5 +19,8 @@ class TestMCTS(unittest.TestCase):
         # Assert that the search has been performed successfully
         # Add your assertions here
 
-if __name__ == '__main__':
-    unittest.main()
+#if __name__ == '__main__':
+#    unittest.main()
+
+anet = ANet(board_size=4, learning_rate=0.001, hidden_layers=[64, 64], activation='relu', optimizer_name='adam', num_cached_nets=10)
+anet.save_net(f"anet_params_0.h5")
