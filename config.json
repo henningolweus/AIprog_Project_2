@@ -1,0 +1,37 @@
+{
+    "hex_game": {
+      "board_size": 4,
+      "total_games": 50
+    },
+    "mcts": {
+      "iteration_limit": 100
+    },
+    "anet": {
+      "learning_rate": 0.001,
+      "hidden_layers": [64, 64],
+      "activation": "relu",
+      "optimizer": "adam",
+      "num_cached_nets": 10
+    },
+    "training": {
+      "batch_size": 32,
+      "num_epochs": 10,
+      "save_interval": 25
+    },
+    "topp": {
+      "games_per_match": 25
+    },
+    "visualization": {
+      "show_board": true,
+      "save_anet_parameters": true
+    },
+    "saved_models_paths": [
+        "anet_params_0.h5", 
+        "anet_params_40.h5", 
+        "anet_params_100.h5",
+        "anet_params_150.h5", 
+        "anet_params_200.h5"
+      ]
+
+  }
+  

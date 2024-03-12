@@ -4,18 +4,39 @@ from Hex import HexBoard  # Assuming your HexBoard class is in hex_board.py
 from MCTS import MCTS, ReplayBuffer
 from ANET import ANet
 
+import json
 
-def play_hex_with_mcts(board_size=4, iteration_limit=100):
+def load_config(config_path):
+    with open(config_path, 'r') as file:
+        return json.load(file)
+
+config = load_config('config.json')
+
+
+def play_hex_with_mcts():
+    board_size = config['hex_game']['board_size']
+    total_games = config['hex_game']['total_games']
+
+    iteration_limit = config['mcts']['iteration_limit']
+
+    save_interval = config['training']['save_interval']
+    batch_size = config['training']['batch_size']
+    num_epochs = config['training']['num_epochs'] # Number of epochs to train ANET for each batch.
     game_counter = 0
-    save_interval = 20
-    total_games = 100
-    iteration_limit=iteration_limit
-    anet = ANet(board_size=4, learning_rate=0.001, hidden_layers=[64, 64], activation='relu', optimizer_name='adam', num_cached_nets=10)
-    batch_size = 32  # This can be adjusted based on your needs and dataset size.
-    num_epochs = 10  # Number of epochs to train ANET for each batch.
     player1_wins = 0
     player2_wins = 0
-    
+
+
+
+    anet = ANet(
+        board_size=config['hex_game']['board_size'], 
+        learning_rate=config['anet']['learning_rate'], 
+        hidden_layers=config['anet']['hidden_layers'], 
+        activation=config['anet']['activation'], 
+        optimizer_name=config['anet']['optimizer'], 
+        num_cached_nets=config['anet']['num_cached_nets']
+    )
+    #anet.load_net("anet_params_100_50.h5") # Load the parameters from the previous training session
 
 
     for game_index in range(total_games):
@@ -65,9 +86,9 @@ def play_hex_with_mcts(board_size=4, iteration_limit=100):
         anet.train(states, target_probs, epochs=num_epochs)
         print("Player 2 win ratio: ", player2_wins/(game_index+1))
         if game_counter % save_interval == 0: 
-            anet.save_net(f"anet_params_{game_counter}.h5")
+            anet.save_net(f"anet_params_DEMO{game_counter}.h5")
             print(f"Saved ANET parameters after game {game_counter+1}.")
 
 if __name__ == "__main__":
-    play_hex_with_mcts(board_size=4, iteration_limit=50)
+    play_hex_with_mcts()
     

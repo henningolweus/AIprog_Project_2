@@ -4,6 +4,12 @@ from Hex import HexBoard
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+import json
+def load_config(config_path):
+    with open(config_path, 'r') as file:
+        return json.load(file)
+config = load_config('config.json')
+
 
 class TOPP:
     def __init__(self, anet_paths, board_size, G=25, visualise=False):
@@ -114,13 +120,15 @@ class TOPP:
 
 
 if __name__ == "__main__":
-    saved_models_paths = [
-        "anet_params_0.h5", 
-        "anet_params_40.h5", 
-        "anet_params_60.h5",
-        "anet_params_80.h5", 
-        "anet_params_100.h5"
-    ]
-    topp = TOPP(anet_paths=saved_models_paths, board_size=4, G=25, visualise=True)
+    saved_models_paths = config['saved_models_paths']
+
+    #topp = TOPP(anet_paths=saved_models_paths, board_size=4, G=25, visualise = config['visualization']['show_board'])
+    topp = TOPP(
+        anet_paths=saved_models_paths,  # Assuming this needs to be dynamically generated during runtime
+        board_size=config['hex_game']['board_size'],
+        G=config['topp']['games_per_match'],
+        visualise=config['visualization']['show_board']
+)
+
     results = topp.round_robin_tournament()
     topp.analyze_results(results)
