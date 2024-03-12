@@ -76,6 +76,8 @@ def play_hex_with_mcts():
                 else:
                     player2_wins += 1
                 #print(Replay_buffer) #For visualization
+                game.render()
+                print(f"Game between player 1 (o) and player 2(x), the winner is player {winner}.")
                 break
             
             current_player = 2 if current_player == 1 else 1
