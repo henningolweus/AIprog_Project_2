@@ -45,8 +45,8 @@ class TOPP:
     
 
     def play_game_between_policies(self, policy1, policy2, current_player):
-        game = HexBoard(self.board_size)
         current_player = current_player
+        game = HexBoard(self.board_size, current_player)
         while not game.is_game_over():
             anet = policy1 if current_player == 1 else policy2
             legal_moves = game.get_legal_moves()
@@ -61,7 +61,7 @@ class TOPP:
             winner = "2"
         else:
             winner = "0"
-         # Test for Draws?
+        
         if self.visualise:
             game.render() #Visualize the game
         return winner
@@ -76,12 +76,12 @@ class TOPP:
                 policy2_wins = 0
                 current_player = 1
                 for _ in range(self.G):
-                    current_player = 3 - current_player
                     winner = self.play_game_between_policies(policy1, policy2, current_player)
                     if winner == "1":
                         policy1_wins += 1
                     elif winner == "2":
                         policy2_wins += 1
+                    current_player = 3 - current_player  # Alternate starting player
                     if self.visualise:
                         print(f"Game between policy {i+1} (o) and policy {j+1} (x)")
                 results[i, j] = policy1_wins

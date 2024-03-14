@@ -44,12 +44,12 @@ def play_hex_with_mcts():
     epsilon_decay = config["mcts"]["epsilon_decay"]  # Decay rate per game
 
     epsilon = epsilon_start  # Current epsilon value
-
+    current_player = 1  # Player 1 starts the game
     for game_index in range(total_games):
         Replay_buffer = ReplayBuffer()
-        game = HexBoard(board_size)
+        current_player = 3-current_player 
+        game = HexBoard(board_size, current_player)
         mcts = MCTS(iteration_limit=iteration_limit, anet=anet)
-        current_player = game.current_player # This is redunant as for now
         print("Current board:")
         print(game.get_nn_input(current_player))
         batch_size = 5
