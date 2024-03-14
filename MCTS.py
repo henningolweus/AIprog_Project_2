@@ -212,17 +212,14 @@ class MCTS:
                     move_probabilities = self.anet.predict(nn_input)
                     board_size = leaf_node.game_state.get_board_size()
                     move = self.select_move_based_on_probabilities(legal_moves,move_probabilities, board_size)
+                    node_for_rollout = random.choice(leaf_node.children)
                     for child in leaf_node.children:
                         if child.move == move:
                             node_for_rollout = child
-                            break
-                    else:
-                        node_for_rollout = random.choice(leaf_node.children)
-                result = self.rollout(node_for_rollout, epsilon, randomChoice=False)
+                result = self.rollout(node_for_rollout, epsilon, randomChoice=True)
             else:
                 # If no children, perform rollout from the leaf node itself
                 result = self.rollout(leaf_node)
-            self.backpropagate(leaf_node, result)
 
             # Rollout - this can often be made orders of magnitude quicker using a state.GetRandomMove() function
             #node_for_rollout = random.choice(leaf_node.children)
@@ -231,7 +228,7 @@ class MCTS:
 
             # Backpropagate
             self.backpropagate(leaf_node, result)
-            move_probabilities = self.calculateMoveProbabilities(self.root_node)
+        move_probabilities = self.calculateMoveProbabilities(self.root_node)
 
         # Sort children by visits to get a list from most visited to least
         sorted_children = sorted(self.root_node.children, key=lambda c: c.visits, reverse=True)

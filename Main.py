@@ -65,7 +65,7 @@ def play_hex_with_mcts():
             game.make_move(*move, current_player)
 
             #print(f"MCTS calculates the following prob distribtution: {move_probabilities}")
-            #print(f"MCTS played move: {move}")
+            print(f"MCTS played move: {move}")
             Replay_buffer.push(input_varaible, move_probabilities)
             # Store the input variables and the target variables
             if game.check_win(current_player):

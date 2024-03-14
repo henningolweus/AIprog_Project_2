@@ -55,7 +55,7 @@ class HexBoard:
         for r in range(self.size):
             print(" " * ((self.size - r - 1) * 2), end='')
             for c in range(r + 1):
-                symbol = cell_symbol(self.board[c, r - c])
+                symbol = cell_symbol(self.board[r - c, c])  
                 print(symbol, end=' ')
                 if c < r:
                     print("-", end=' ')
@@ -65,15 +65,16 @@ class HexBoard:
         for r in range(self.size - 2, -1, -1):
             print(" " * ((self.size - r - 1) * 2), end='')
             for c in range(r + 1):
-                symbol = cell_symbol(self.board[self.size - r + c - 1, self.size - c - 1])
+                symbol = cell_symbol(self.board[self.size - c - 1, self.size - r + c - 1])  
                 print(symbol, end=' ')
                 if c < r:
                     print("-", end=' ')
             print()
         print(" " * (self.size * 2 - 1) + "S")  # South
 
-        # Adding East and West markers
-        print(" " * 2 + "W" + " " * (self.size * 4 - 5) + "E")
+        # Correcting East and West markers
+        print(" " * 2 + "W" + " " * (self.size * 4 - 5) + "E")  
+
 
     # def get_nn_input(self, current_player):
     #     """Generate a neural network input array that distinguishes Player 1 and Player 2 placements,
