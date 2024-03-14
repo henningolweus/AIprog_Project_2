@@ -122,7 +122,7 @@ class MCTS:
         
         return selected_move
 
-    def rollout(self, node, randomChoice = False):
+    def rollout(self, node,epsilon=0.1,  randomChoice = False):
         """
         Simulate the game from the current node's state until a terminal state is reached.
         A simpler policy (e.g., random moves) is used for the simulation.
@@ -140,10 +140,13 @@ class MCTS:
                 # Select a random move from the legal moves
                 move = random.choice(legal_moves)
             else:
-                nn_input = current_game_state.get_nn_input(current_player)
-                move_probabilities = self.anet.predict(nn_input)
-                board_size = current_game_state.get_board_size()
-                move = self.select_move_based_on_probabilities(legal_moves,move_probabilities, board_size)
+                if random.random() < epsilon:
+                    move = random.choice(legal_moves)
+                else:
+                    nn_input = current_game_state.get_nn_input(current_player)
+                    move_probabilities = self.anet.predict(nn_input)
+                    board_size = current_game_state.get_board_size()
+                    move = self.select_move_based_on_probabilities(legal_moves,move_probabilities, board_size)
             # Make the move on a cloned state to simulate the game without affecting the actual game tree
             current_game_state.make_move(*move, current_player)
             # Switch to the other player
@@ -166,7 +169,7 @@ class MCTS:
 
 
 
-    def MCTS_search(self, root_state):
+    def MCTS_search(self, root_state, epsilon):
         """
         Conduct a MCTS search for iteration_limit iterations starting from root_state.
         Return the best move from the root_state.
@@ -201,8 +204,20 @@ class MCTS:
             self.expand(leaf_node)
             #New Rollout. It also handels the case where there are no children
             if leaf_node.children:
-                node_for_rollout = random.choice(leaf_node.children) #MUST BE CHANGED TO SELECT THE BEST CHILD
-                result = self.rollout(node_for_rollout, randomChoice=False)
+                if random.random() < epsilon:
+                    node_for_rollout = random.choice(leaf_node.children)
+                else:
+                    nn_input = leaf_node.game_state.get_nn_input(leaf_node.current_player)
+                    move_probabilities = self.anet.predict(nn_input)
+                    board_size = leaf_node.game_state.get_board_size()
+                    move = self.select_move_based_on_probabilities(legal_moves,move_probabilities, board_size)
+                    for child in leaf_node.children:
+                        if child.move == move:
+                            node_for_rollout = child
+                            break
+                    else:
+                        node_for_rollout = random.choice(leaf_node.children)
+                result = self.rollout(node_for_rollout, epsilon, randomChoice=False)
             else:
                 # If no children, perform rollout from the leaf node itself
                 result = self.rollout(leaf_node)

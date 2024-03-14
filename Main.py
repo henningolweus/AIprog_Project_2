@@ -39,6 +39,12 @@ def play_hex_with_mcts():
     #anet.load_net("anet_params_100_50.h5") # Load the parameters from the previous training session
 
 
+    epsilon_start = config["mcts"]["epsilon_start"] # Initial epsilon value for exploration
+    epsilon_end = config["mcts"]["epsilon_end"]   # Minimum epsilon value
+    epsilon_decay = config["mcts"]["epsilon_decay"]  # Decay rate per game
+
+    epsilon = epsilon_start  # Current epsilon value
+
     for game_index in range(total_games):
         Replay_buffer = ReplayBuffer()
         game = HexBoard(board_size)
@@ -47,6 +53,7 @@ def play_hex_with_mcts():
         print("Current board:")
         print(game.get_nn_input(current_player))
         batch_size = 5
+        epsilon = max(epsilon_end, epsilon * epsilon_decay)
 
         while not game.is_game_over():
             input_varaible = game.get_nn_input(current_player)
@@ -54,7 +61,7 @@ def play_hex_with_mcts():
 
             #print(f"Player {current_player}'s turn.")
             if current_player == 1:
-                move, move_probabilities = mcts.MCTS_search(game)
+                move, move_probabilities = mcts.MCTS_search(game, epsilon=epsilon)
                 game.make_move(*move, current_player)
 
                 #print(f"MCTS calculates the following prob distribtution: {move_probabilities}")
