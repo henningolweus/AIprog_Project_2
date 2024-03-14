@@ -44,9 +44,9 @@ class TOPP:
         return selected_move
     
 
-    def play_game_between_policies(self, policy1, policy2):
+    def play_game_between_policies(self, policy1, policy2, current_player):
         game = HexBoard(self.board_size)
-        current_player = 1
+        current_player = current_player
         while not game.is_game_over():
             anet = policy1 if current_player == 1 else policy2
             legal_moves = game.get_legal_moves()
@@ -55,7 +55,13 @@ class TOPP:
             move = self.select_move_based_on_probabilities(legal_moves,move_probabilities, self.board_size)
             game.make_move(*move, current_player)
             current_player = 3 - current_player
-        winner = "1" if game.check_win(1) else "2" # Test for Draws?
+        if game.check_win(1):
+            winner = "1" 
+        elif game.check_win(2):
+            winner = "2"
+        else:
+            winner = "0"
+         # Test for Draws?
         if self.visualise:
             game.render() #Visualize the game
         return winner
@@ -67,14 +73,19 @@ class TOPP:
                 if i == j:
                     continue  # Skip playing against itself
                 policy1_wins = 0
+                policy2_wins = 0
+                current_player = 1
                 for _ in range(self.G):
-                    winner = self.play_game_between_policies(policy1, policy2)
+                    current_player = 3 - current_player
+                    winner = self.play_game_between_policies(policy1, policy2, current_player)
                     if winner == "1":
                         policy1_wins += 1
+                    elif winner == "2":
+                        policy2_wins += 1
                     if self.visualise:
                         print(f"Game between policy {i+1} (o) and policy {j+1} (x)")
                 results[i, j] = policy1_wins
-                results[j, i] = self.G - policy1_wins  # Assuming binary outcome
+                results[j, i] = policy2_wins  # Assuming binary outcome
         return results
 
 
