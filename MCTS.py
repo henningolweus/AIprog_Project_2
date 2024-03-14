@@ -207,6 +207,7 @@ class MCTS:
                 if random.random() < epsilon:
                     node_for_rollout = random.choice(leaf_node.children)
                 else:
+                    legal_moves = leaf_node.game_state.get_legal_moves()
                     nn_input = leaf_node.game_state.get_nn_input(leaf_node.current_player)
                     move_probabilities = self.anet.predict(nn_input)
                     board_size = leaf_node.game_state.get_board_size()
