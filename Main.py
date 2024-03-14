@@ -60,21 +60,14 @@ def play_hex_with_mcts():
             game.render()
 
             #print(f"Player {current_player}'s turn.")
-            if current_player == 1:
-                move, move_probabilities = mcts.MCTS_search(game, epsilon=epsilon)
-                game.make_move(*move, current_player)
+            
+            move, move_probabilities = mcts.MCTS_search(game, epsilon=epsilon)
+            game.make_move(*move, current_player)
 
-                #print(f"MCTS calculates the following prob distribtution: {move_probabilities}")
-                #print(f"MCTS played move: {move}")
-                Replay_buffer.push(input_varaible, move_probabilities)
-            else:  # Player 2 uses MCTS
-                #move = mcts.UCT(game)
-                move, move_probabilities = mcts.MCTS_search(game)
-                game.make_move(*move, current_player)
-
-                #print(f"MCTS calculates the following prob distribtution: {move_probabilities}")
-                #print(f"MCTS played move: {move}")
-                Replay_buffer.push(input_varaible, move_probabilities) # Store the input variables and the target variables
+            #print(f"MCTS calculates the following prob distribtution: {move_probabilities}")
+            #print(f"MCTS played move: {move}")
+            Replay_buffer.push(input_varaible, move_probabilities)
+            # Store the input variables and the target variables
             if game.check_win(current_player):
                 winner = "1" if game.check_win(1) else "2"
                 print(f"Game Over! Player {winner} wins!")

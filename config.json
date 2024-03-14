@@ -5,8 +5,8 @@
     },
     "mcts": {
       "iteration_limit": 500,
-      "epsilon_start": 0.3,
-      "epsilon_end" : 0.05,
+      "epsilon_start": 0.2,
+      "epsilon_end" : 0.01,
       "epsilon_decay" : 0.995
     },
     "anet": {
