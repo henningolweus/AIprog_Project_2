@@ -17,7 +17,7 @@
       "num_cached_nets": 10
     },
     "training": {
-      "batch_size": 32,
+      "batch_size": 5,
       "num_epochs": 2,
       "save_interval": 2
     },

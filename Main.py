@@ -52,7 +52,7 @@ def play_hex_with_mcts():
         mcts = MCTS(iteration_limit=iteration_limit, anet=anet)
         print("Current board:")
         print(game.get_nn_input(current_player))
-        batch_size = 5
+        batch_size = config.get('training').get('batch_size')
         epsilon = max(epsilon_end, epsilon * epsilon_decay)
 
         while not game.is_game_over():
