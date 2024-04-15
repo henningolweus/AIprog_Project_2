@@ -25,7 +25,7 @@ class Node:
         Select a child node using the UCT (Upper Confidence bounds applied to Trees) metric.
         """
         log_parent_visits = math.log(self.visits)
-        return min(self.children, key=lambda c: c.wins / (c.visits + 1) - self.c * math.sqrt(log_parent_visits / (1 + c.visits)))
+        return max(self.children, key=lambda c: c.wins / (c.visits + 1) + self.c * math.sqrt(log_parent_visits / (1 + c.visits)))
 
     def AddChild(self, move, new_game_state):
         """
@@ -45,7 +45,7 @@ class Node:
         if self.current_player == leaf_node_player and result == 1:
             # The game_state's current player is the same as the node's player
             # This means the result is already from the correct perspective
-            self.wins += result
+            self.wins += 1
         elif self.current_player != leaf_node_player and result == -1:
             # The result is from the opponent's perspective; invert it for the current player's perspective
             self.wins += 1  # Invert the result

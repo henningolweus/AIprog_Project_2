@@ -53,7 +53,7 @@ class ANet:
         # Ensure state is reshaped correctly to match the expected input shape of the model
         if state.ndim == 1:  # If state is a flat array, reshape it to include batch dimension
             state = state.reshape(1, -1)
-        return self.model.predict(state)
+        return self.model.predict(state, verbose=0)
 
     def save_net(self, filename):
         self.model.save(filename)
