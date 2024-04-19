@@ -6,6 +6,7 @@ from ANET import ANet
 
 import json
 
+
 def load_config(config_path):
     with open(config_path, 'r') as file:
         return json.load(file)
@@ -36,7 +37,8 @@ def play_hex_with_mcts():
         optimizer_name=config['anet']['optimizer'], 
         num_cached_nets=config['anet']['num_cached_nets']
     )
-    #anet.load_net("anet_params_100_50.h5") # Load the parameters from the previous training session
+    anet.save_net(f"anet_7_random{game_counter}.h5")
+    anet.load_net("anet_7_random25.h5") # Load the parameters from the previous training session
 
 
     epsilon_start = config["mcts"]["epsilon_start"] # Initial epsilon value for exploration
@@ -46,6 +48,7 @@ def play_hex_with_mcts():
     epsilon = epsilon_start  # Current epsilon value
     starting_player = 2  # Player 1 starts the game
     for game_index in range(total_games):
+        print(f"Game {game_index+1}")
         Replay_buffer = ReplayBuffer()
         starting_player = 3-starting_player 
         game = HexBoard(board_size, starting_player)
@@ -55,10 +58,12 @@ def play_hex_with_mcts():
         batch_size = config.get('training').get('batch_size')
         epsilon = max(epsilon_end, epsilon * epsilon_decay)
         current_player = starting_player
+        move_counter=0
 
         while not game.is_game_over():
             input_varaible = game.get_nn_input(current_player)
             game.render()
+            move_counter+=1
 
             #print(f"Player {current_player}'s turn.")
             
@@ -83,14 +88,17 @@ def play_hex_with_mcts():
             
             current_player = 2 if current_player == 1 else 1
         game_counter+=1
-        states, target_probs_dicts = Replay_buffer.sample(batch_size)
+
+        states, target_probs_dicts = Replay_buffer.sample(move_counter)
         target_probs = np.array([Replay_buffer.convert_probs_to_array(prob_dict, board_size = board_size) for prob_dict in target_probs_dicts])
         print(states)
         anet.train(states, target_probs, epochs=num_epochs)
         print("Player 2 win ratio: ", player2_wins/(game_index+1))
         if game_counter % save_interval == 0: 
-            anet.save_net(f"anet_params_DEMO{game_counter}.h5")
-            print(f"Saved ANET parameters after game {game_counter+1}.")
+            anet.save_net(f"anet_7_random{game_counter}.h5")
+            if game_counter==total_games:
+                Replay_buffer.save_to_file('data.json')
+            print(f"Saved ANET parameters after game {game_counter}.")
 
 if __name__ == "__main__":
     play_hex_with_mcts()

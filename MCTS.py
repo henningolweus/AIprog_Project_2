@@ -216,7 +216,7 @@ class MCTS:
                     for child in leaf_node.children:
                         if child.move == move:
                             node_for_rollout = child
-                result = self.rollout(node_for_rollout, epsilon, randomChoice=True)
+                result = self.rollout(node_for_rollout, epsilon, randomChoice=False)
             else:
                 # If no children, perform rollout from the leaf node itself
                 result = self.rollout(leaf_node)
@@ -271,7 +271,7 @@ class MCTS:
 
 
 
-
+import json
 
 class ReplayBuffer:
     def __init__(self, capacity=10000):
@@ -307,6 +307,16 @@ class ReplayBuffer:
         
         return probs_array
     
+    def save_to_file(self, filename):
+        with open(filename, 'w') as file:
+            json.dump(self.buffer, file, indent=4)
+
+    def load_from_file(self, filename):
+            with open(filename, 'r') as file:
+                data = json.load(file)
+                self.buffer = [(np.array(state), np.array(prob_dist)) for state, prob_dist in data]
+                self.position = len(self.buffer) % self.capacity
+
     def __str__(self):
         buffer_contents = f'Replay Buffer Size: {len(self.buffer)}/{self.capacity}\n'
         buffer_contents += 'Contents:\n'
