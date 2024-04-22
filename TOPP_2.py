@@ -30,13 +30,29 @@ class TOPP:
     def select_move_based_on_probabilities(self, legal_moves, move_probabilities, board_size):
 
         move_probabilities = move_probabilities.flatten()
+
         
         # Convert legal moves to indices in the probability array
         legal_indices = [row * board_size + col for row, col in legal_moves]
         # Filter and normalize probabilities for legal moves
         filtered_probs = np.zeros(move_probabilities.shape)
         filtered_probs[legal_indices] = move_probabilities[legal_indices]
-        normalized_probs = filtered_probs / np.sum(filtered_probs)
+        total_probs = np.sum(filtered_probs)
+        if total_probs == 0:
+            print("Warning: Sum of probabilities is zero. Fallback to uniform distribution among legal moves.")
+            normalized_probs = np.zeros_like(filtered_probs)
+            normalized_probs[legal_indices] = 1.0 / len(legal_indices) if len(legal_indices) > 0 else 0
+        else:
+            normalized_probs = filtered_probs / total_probs
+
+        # Ensure no NaN values remain (sanity check)
+        if np.any(np.isnan(normalized_probs)) or np.sum(normalized_probs) == 0:
+            print("Error: Normalized probabilities still contain NaN or zero sum after adjustment.")
+            normalized_probs = np.nan_to_num(normalized_probs)  # Convert NaN to zero
+            if np.sum(normalized_probs) == 0 and len(legal_indices) > 0:
+                # Assign equal probability to all legal moves as a last resort
+                normalized_probs[legal_indices] = 1.0 / len(legal_indices)
+
         # Select a move based on the normalized probabilities
         selected_index = np.random.choice(len(normalized_probs), p=normalized_probs)
         selected_move = divmod(selected_index, board_size)  # Convert index back to row, col format
@@ -50,7 +66,7 @@ class TOPP:
         while not game.is_game_over():
             anet = policy1 if current_player == 1 else policy2
             legal_moves = game.get_legal_moves()
-            nn_input = game.get_nn_input(current_player)
+            nn_input = game.get_nn_input_translated(current_player)
             move_probabilities = anet.predict(nn_input)
             move = self.select_move_based_on_probabilities(legal_moves,move_probabilities, self.board_size)
             game.make_move(*move, current_player)

@@ -25,7 +25,10 @@ class Node:
         Select a child node using the UCT (Upper Confidence bounds applied to Trees) metric.
         """
         log_parent_visits = math.log(self.visits)
-        return max(self.children, key=lambda c: c.wins / (c.visits + 1) + self.c * math.sqrt(log_parent_visits / (1 + c.visits)))
+        if self.current_player == 2:
+            return min(self.children, key=lambda c: c.wins / (c.visits + 1) - self.c * math.sqrt(log_parent_visits / (1 + c.visits)))
+        else:
+            return max(self.children, key=lambda c: c.wins / (c.visits + 1) + self.c * math.sqrt(log_parent_visits / (1 + c.visits)))
 
     def AddChild(self, move, new_game_state):
         """
@@ -42,13 +45,7 @@ class Node:
         Update this node's data from the result of a simulation.
         """
         self.visits += 1
-        if self.current_player == leaf_node_player and result == 1:
-            # The game_state's current player is the same as the node's player
-            # This means the result is already from the correct perspective
-            self.wins += 1
-        elif self.current_player != leaf_node_player and result == -1:
-            # The result is from the opponent's perspective; invert it for the current player's perspective
-            self.wins += 1  # Invert the result
+        self.wins+= result
 
 class MCTS:
    
@@ -143,7 +140,7 @@ class MCTS:
                 if random.random() < epsilon:
                     move = random.choice(legal_moves)
                 else:
-                    nn_input = current_game_state.get_nn_input(current_player)
+                    nn_input = current_game_state.get_nn_input_translated(current_player)
                     move_probabilities = self.anet.predict(nn_input)
                     board_size = current_game_state.get_board_size()
                     move = self.select_move_based_on_probabilities(legal_moves,move_probabilities, board_size)
@@ -154,12 +151,10 @@ class MCTS:
 
         # Return the result of the game from the perspective of the node's player
         # If the current game state's winner is the node's player, return 1, else return -1
-        if current_game_state.check_win(node.current_player):
-            return 1  # Player wins
-        elif current_game_state.check_win(3 - node.current_player):
-            return -1  # Opponent wins
+        if current_game_state.check_win(1):
+            return 1  # Player 1 wins
         else:
-            return 0  # Draw or incomplete game
+            return -1  # Player 2 wins
     
     def backpropagate(self, node, result):
         leaf_node_player = node.current_player
@@ -208,7 +203,7 @@ class MCTS:
                     node_for_rollout = random.choice(leaf_node.children)
                 else:
                     legal_moves = leaf_node.game_state.get_legal_moves()
-                    nn_input = leaf_node.game_state.get_nn_input(leaf_node.current_player)
+                    nn_input = leaf_node.game_state.get_nn_input_translated(leaf_node.current_player)
                     move_probabilities = self.anet.predict(nn_input)
                     board_size = leaf_node.game_state.get_board_size()
                     move = self.select_move_based_on_probabilities(legal_moves,move_probabilities, board_size)

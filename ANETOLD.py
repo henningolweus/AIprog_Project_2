@@ -17,7 +17,7 @@ class ANet:
         model = models.Sequential()
         
         # Assuming your input is a flat array including the game state and player indicator
-        input_shape = (self.board_size*self.board_size + 1,)  # Total inputs including player indicator
+        input_shape = (self.board_size*self.board_size*2 + 1,)  # Total inputs including player indicator
         
         # Start building your model from the Dense layers directly
         model.add(layers.InputLayer(input_shape=input_shape))  # Define the input shape of the model
@@ -26,7 +26,7 @@ class ANet:
             model.add(layers.Dense(units, activation=self.activation))
         
         # Output layer
-        model.add(layers.Dense(self.board_size**2, activation="softmax"))
+        model.add(layers.Dense(self.board_size**2, activation='softmax'))
         
         optimizer = self._get_optimizer()
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
@@ -47,7 +47,7 @@ class ANet:
             raise ValueError("Unsupported optimizer")
 
     def train(self, X_train, y_train, epochs=10, batch_size=32):
-        self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=0)
+        self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size)
 
     def predict(self, state):
         # Ensure state is reshaped correctly to match the expected input shape of the model
@@ -63,19 +63,19 @@ class ANet:
 
 
 
-# # Example usage
-# anet = ANet(board_size=4, learning_rate=0.001, hidden_layers=[64, 64], activation='relu', optimizer_name='adam', num_cached_nets=10)
+# Example usage
+anet = ANet(board_size=4, learning_rate=0.001, hidden_layers=[64, 64], activation='relu', optimizer_name='adam', num_cached_nets=10)
 
-# game_state = np.zeros((anet.board_size*anet.board_size*2 + 1,))  # Include the player indicator in the game state array
+game_state = np.zeros((anet.board_size*anet.board_size*2 + 1,))  # Include the player indicator in the game state array
 
-# # Predict the move distribution for the given game state and current player
-# move_distribution = anet.predict(game_state)
+# Predict the move distribution for the given game state and current player
+move_distribution = anet.predict(game_state)
 
-# # Create the ANet instance
+# Create the ANet instance
 
-# # Define a test game state
-# game_state = np.array([[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,-1]])  # Example input reshaped for prediction
+# Define a test game state
+game_state = np.array([[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,-1]])  # Example input reshaped for prediction
 
-# # Predict the move distribution for the given game state
-# move_distribution = anet.predict(game_state)
-# print("Predicted move distribution:", move_distribution)
+# Predict the move distribution for the given game state
+move_distribution = anet.predict(game_state)
+print("Predicted move distribution:", move_distribution)

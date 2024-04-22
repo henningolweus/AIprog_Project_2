@@ -98,6 +98,26 @@ class HexBoard:
         current_player_indicator = 1 if current_player == 1 else -1
         nn_input = np.append(flat_board, current_player_indicator)
         return nn_input  # Return as NumPy array
+    
+    def get_nn_input_translated(self, current_player):
+        # Flatten the board to create a single array
+        flat_board = np.zeros((self.board.shape[0], self.board.shape[1]), dtype=int)
+
+
+        for i in range(self.board.shape[0]):
+            for j in range(self.board.shape[1]):
+                if np.array_equal(self.board[i, j], [1, 0]):
+                    flat_board[i, j] = 1
+                elif np.array_equal(self.board[i, j], [0, 1]):
+                    flat_board[i, j] = -1
+                elif np.array_equal(self.board[i, j], [0, 0]):
+                    flat_board[i, j] = 0
+        
+        flat_board = flat_board.flatten()
+        # Add the current player indicator at the end of the flattened board
+        current_player_indicator = 1 if current_player == 1 else -1
+        nn_input = np.append(flat_board, current_player_indicator)
+        return nn_input  # Return as NumPy array
 
     
     def clone(self):

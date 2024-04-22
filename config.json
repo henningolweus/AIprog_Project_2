@@ -1,40 +1,38 @@
 {
-    "hex_game": {
-      "board_size": 4,
-      "total_games": 10
-    },
-    "mcts": {
-      "iteration_limit": 500,
-      "epsilon_start": 0.2,
-      "epsilon_end" : 0.01,
-      "epsilon_decay" : 0.995
-    },
-    "anet": {
-      "learning_rate": 0.001,
-      "hidden_layers": [64, 64],
-      "activation": "relu",
-      "optimizer": "adam",
-      "num_cached_nets": 10
-    },
-    "training": {
-      "batch_size": 5,
-      "num_epochs": 2,
-      "save_interval": 2
-    },
-    "topp": {
-      "games_per_match": 25
-    },
-    "visualization": {
-      "show_board": true,
-      "save_anet_parameters": true
-    },
-    "saved_models_paths": [
-        "anet_params_DEMO2.h5", 
-        "anet_params_DEMO4.h5", 
-        "anet_params_DEMO6.h5",
-        "anet_params_DEMO8.h5", 
-        "anet_params_DEMO10.h5"
-      ]
-
-  }
-  
+  "hex_game": {
+    "board_size": 4,
+    "total_games": 200
+  },
+  "mcts": {
+    "iteration_limit": 500,
+    "epsilon_start": 1,
+    "epsilon_end": 1,
+    "epsilon_decay": 0.95
+  },
+  "anet": {
+    "learning_rate": 0.005,
+    "hidden_layers": [40, 40],
+    "activation": "relu",
+    "optimizer": "adam",
+    "num_cached_nets": 10
+  },
+  "training": {
+    "sample_size": 1000,
+    "num_epochs": 150,
+    "save_interval": 25
+  },
+  "topp": {
+    "games_per_match": 50
+  },
+  "visualization": {
+    "show_board": true,
+    "save_anet_parameters": true
+  },
+  "saved_models_paths": [
+    "anet_params_DEMO0.h5",
+    "anet_params_DEMO50.h5",
+    "anet_params_DEMO100.h5",
+    "anet_params_DEMO150.h5",
+    "anet_params_DEMO200.h5"
+  ]
+}
