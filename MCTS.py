@@ -211,10 +211,10 @@ class MCTS:
                     for child in leaf_node.children:
                         if child.move == move:
                             node_for_rollout = child
-                result = self.rollout(node_for_rollout, epsilon, randomChoice=True)
+                result = self.rollout(node_for_rollout, epsilon, randomChoice=False)
             else:
                 # If no children, perform rollout from the leaf node itself
-                result = self.rollout(leaf_node)
+                result = self.rollout(leaf_node, epsilon)
 
             # Rollout - this can often be made orders of magnitude quicker using a state.GetRandomMove() function
             #node_for_rollout = random.choice(leaf_node.children)

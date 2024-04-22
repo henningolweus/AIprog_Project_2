@@ -1,13 +1,13 @@
 {
   "hex_game": {
-    "board_size": 4,
+    "board_size": 7,
     "total_games": 200
   },
   "mcts": {
     "iteration_limit": 500,
     "epsilon_start": 1,
-    "epsilon_end": 1,
-    "epsilon_decay": 0.95
+    "epsilon_end": 0.4,
+    "epsilon_decay": 0.99
   },
   "anet": {
     "learning_rate": 0.005,
