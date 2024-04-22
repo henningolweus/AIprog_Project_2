@@ -11,7 +11,7 @@
   },
   "anet": {
     "learning_rate": 0.005,
-    "hidden_layers": [40, 40],
+    "hidden_layers": [99, 99],
     "activation": "relu",
     "optimizer": "adam",
     "num_cached_nets": 10
