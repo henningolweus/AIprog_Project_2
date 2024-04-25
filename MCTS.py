@@ -70,13 +70,10 @@ class MCTS:
         if node.untried_moves != []:
             while node.untried_moves != []:
                 move = random.choice(node.untried_moves)
-                # print(move)
-                # print("MOVE JUST EXPANDED")
                 new_game_state = node.game_state.clone()
                 new_game_state.make_move(*move, node.current_player) #Changed this to current
                 node.AddChild(move, new_game_state)
         else :
-            #print("NO UNTRIED MOVES")'
             pass
 
     def select_move_based_on_probabilities(self, legal_moves, move_probabilities, board_size):
@@ -161,14 +158,12 @@ class MCTS:
 
         if self.root_node is not None:
             if root_state.__eq__(self.root_node.game_state):
-                #print("ROOT NODE FOUND. WAS INITIAL NODE")
                 found_node = True
             else:
                 for child in self.root_node.children:
                     if root_state.__eq__(child.game_state):
                         found_node = True
                         self.root_node = child
-                        #print("ROOT NODE FOUND. WAS CHILD NODE")
                         break
         else:
             self.root_node = Node(game_state=root_state)
@@ -184,7 +179,8 @@ class MCTS:
 
             # Expand
             self.expand(leaf_node)
-            #New Rollout. It also handels the case where there are no children
+
+            # Rollout. It also handels the case where there are no children
             if leaf_node.children:
                 if random.random() < epsilon:
                     node_for_rollout = random.choice(leaf_node.children)
@@ -202,11 +198,6 @@ class MCTS:
             else:
                 # If no children, perform rollout from the leaf node itself
                 result = self.rollout(leaf_node, epsilon)
-
-            # Rollout - this can often be made orders of magnitude quicker using a state.GetRandomMove() function
-            #node_for_rollout = random.choice(leaf_node.children)
-            #result = self.rollout(node_for_rollout)
-            # print("Iteration:" + str(_) + "/" + str(self.iteration_limit)+ "The result of the rollout is: ", result)
 
             # Backpropagate
             self.backpropagate(leaf_node, result)
@@ -267,7 +258,6 @@ class ReplayBuffer:
         # Store state and MCTS probability distribution
         self.buffer[self.position] = (state, prob_dist)
         self.position = (self.position + 1) % self.capacity
-        #self.buffer.append((state.tolist(), prob_dist))  # Convert state to list for JSON compatibility
     
     def sample(self, batch_size):
         batch = random.sample(self.buffer, batch_size)
