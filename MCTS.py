@@ -65,26 +65,7 @@ class MCTS:
         while node.children != [] and (not node.game_state.check_win(1) ) and (not node.game_state.check_win(2) ):
             node = node.UCTSelectChild()
         return node
-    
-    """
-    def expand(self, node):
-        legal_moves = node.game_state.get_legal_moves()  # Refresh the list of legal moves if necessary
-        while node.untried_moves:
-            move = random.choice(node.untried_moves)  # Randomly select a move
-            if move in legal_moves:  # Ensure the move is still legal 
-                new_game_state = node.game_state.clone()
-                new_game_state.make_move(*move, node.opponent_player)  # Make the move for the opponent (opponent_player is the player who just moved
-                node.AddChild(move, new_game_state)
-            else:
-                # This else block is optional and can be used for debugging
-                print(f"Attempted to expand an illegal or already tried move: {move}")
-                node.untried_moves.remove(move)  # Remove the move to prevent future attempts
 
-        if not node.children:
-            print("No legal moves were available for expansion or all moves have been tried.")
-
-
-        """
     def expand(self, node):
         if node.untried_moves != []:
             while node.untried_moves != []:
