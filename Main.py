@@ -35,10 +35,10 @@ def play_hex_with_mcts():
         optimizer_name=config['anet']['optimizer'], 
         num_cached_nets=config['anet']['num_cached_nets']
     )
-    anet.save_net(f"anet_params_DEMO0.h5")
-    # anet.load_net("anet_params_DEMO100.h5")
-    #anet.load_net("anet_params_100_50.h5") # Load the parameters from the previous training session
+    anet.save_net(f"anet_six.h5")
+    #anet.load_net("anet_seven_data60.h5")
     Replay_buffer = ReplayBuffer()
+    #Replay_buffer.load_from_file("Replay_buffer_seven_60.json")
 
     epsilon_start = config["mcts"]["epsilon_start"] # Initial epsilon value for exploration
     epsilon_end = config["mcts"]["epsilon_end"]   # Minimum epsilon value
@@ -50,9 +50,9 @@ def play_hex_with_mcts():
         starting_player = 3-starting_player 
         game = HexBoard(board_size, starting_player)
         mcts = MCTS(iteration_limit=iteration_limit, anet=anet)
-        sample_size = config.get('training').get('sample_size')
         epsilon = max(epsilon_end, epsilon * epsilon_decay)
         current_player = starting_player
+        move_counter = 0
 
         while not game.is_game_over():
             input_varaible = game.get_nn_input_translated(current_player)
@@ -63,6 +63,7 @@ def play_hex_with_mcts():
             
             move, move_probabilities = mcts.MCTS_search(game, epsilon=epsilon)
             game.make_move(*move, current_player)
+            move_counter += 1
             #print(f"MCTS calculates the following prob distribtution: {move_probabilities}")
             print(f"MCTS played move: {move}")
             Replay_buffer.push(input_varaible, move_probabilities)
@@ -81,13 +82,15 @@ def play_hex_with_mcts():
             
             current_player = 2 if current_player == 1 else 1
         game_counter+=1
-        states, target_probs_dicts = Replay_buffer.sample(min(sample_size, len(Replay_buffer)))
+        states, target_probs_dicts = Replay_buffer.sample(len(Replay_buffer))
         target_probs = np.array([Replay_buffer.convert_probs_to_array(prob_dict, board_size = board_size) for prob_dict in target_probs_dicts])
         anet.train(states, target_probs, epochs=num_epochs)
         print("Player 2 win ratio: ", player2_wins/(game_index+1))
         if game_counter % save_interval == 0: 
-            anet.save_net(f"anet_params_DEMO{game_counter}.h5")
+            anet.save_net(f"anet_six{game_counter}.h5")
+            Replay_buffer.save_to_file(f"Replay_buffer_six{game_counter}.json")
             print(f"Saved ANET parameters after game {game_counter+1}.")
+
 
 if __name__ == "__main__":
     play_hex_with_mcts()

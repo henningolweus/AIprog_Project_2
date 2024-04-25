@@ -47,7 +47,7 @@ class ANet:
             raise ValueError("Unsupported optimizer")
 
     def train(self, X_train, y_train, epochs=10, batch_size=32):
-        self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=0)
+        self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size)
 
     def predict(self, state):
         # Ensure state is reshaped correctly to match the expected input shape of the model

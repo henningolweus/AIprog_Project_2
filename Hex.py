@@ -8,6 +8,13 @@ class HexBoard:
         self.board = np.zeros((size, size, 2), dtype=int)
         self.current_player = starting_player  # brukes 
 
+    """
+    def __eq__(self, other):
+        if not isinstance(other, HexBoard):
+            return NotImplemented
+        return (np.array_equal(self.board, other.board) and 
+                self.current_player == other.current_player)
+    """
     def __eq__(self, other):
         if not isinstance(other, HexBoard):
             print("Comparison failed: The other object is not an instance of HexBoard.")
@@ -126,8 +133,6 @@ class HexBoard:
         Attempts to place a piece on the board for the given player.
         - row, col: The coordinates where the player wants to place their piece.
         - player: The player making the move, 1 for Player 1 and 2 for Player 2.
-        Marks the cell with [1, 0] for Player 1 and [0, 1] for Player 2.
-        Returns True if the move was made successfully, False if the move was illegal.
         """
         if (row, col) not in self.get_legal_moves():
             return False  # Move is illegal if it's not in the list of legal moves.

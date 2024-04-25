@@ -103,20 +103,11 @@ class TOPP:
 
 
     def analyze_results(self, results):
-        # Call to your existing analysis methods
     
-        self.display_win_loss_ratios(results)
         self.rank_policies(results)
         self.statistical_summary(results)
         self.specific_opponent_performance(results)
 
-    def display_win_loss_ratios(self, results):
-        print("\nWin-Loss Ratios:")
-        total_games = 2 * self.G * (len(self.anets) - 1)
-        for i, wins in enumerate(results):
-            losses = total_games - sum(wins)
-            ratio = sum(wins) / float(losses) if losses != 0 else 'Inf'
-            print(f"Policy {i+1}: {ratio}")
 
     def rank_policies(self, results):
         print("\nRanking of Policies:")
