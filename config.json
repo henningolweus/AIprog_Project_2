@@ -14,8 +14,7 @@
     "learning_rate": 0.01,
     "hidden_layers": [99, 99],
     "activation": "relu",
-    "optimizer": "adam",
-    "num_cached_nets": 10
+    "optimizer": "adam"
   },
   "training": {
     "sample_size": 300,

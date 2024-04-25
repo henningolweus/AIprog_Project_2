@@ -1,5 +1,3 @@
-import numpy as np
-import tensorflow as tf
 from tensorflow.keras import layers, models, optimizers
 
 class ANet:
@@ -16,20 +14,15 @@ class ANet:
     def _build_model(self):
         model = models.Sequential()
         
-        # Assuming your input is a flat array including the game state and player indicator
-        input_shape = (self.board_size*self.board_size + 1,)  # Total inputs including player indicator
-        
-        # Start building your model from the Dense layers directly
-        model.add(layers.InputLayer(input_shape=input_shape))  # Define the input shape of the model
+        input_shape = (self.board_size*self.board_size + 1,)  # Board size squared + player indicator
+        model.add(layers.InputLayer(input_shape=input_shape))  # Input layer
         
         for units in self.hidden_layers:
-            model.add(layers.Dense(units, activation=self.activation))
+            model.add(layers.Dense(units, activation=self.activation)) # Hidden layers
+        model.add(layers.Dense(self.board_size**2, activation="softmax"))  # Output layer
         
-        # Output layer
-        model.add(layers.Dense(self.board_size**2, activation="softmax"))
-        
-        optimizer = self._get_optimizer()
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+        optimizer = self._get_optimizer() # Optimizer
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy']) # Compile model
 
         return model
 
@@ -50,8 +43,7 @@ class ANet:
         self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size)
 
     def predict(self, state):
-        # Ensure state is reshaped correctly to match the expected input shape of the model
-        if state.ndim == 1:  # If state is a flat array, reshape it to include batch dimension
+        if state.ndim == 1: 
             state = state.reshape(1, -1)
         return self.model.predict(state, verbose=0)
 
@@ -60,22 +52,3 @@ class ANet:
 
     def load_net(self, filename):
         self.model = models.load_model(filename)
-
-
-
-# # Example usage
-# anet = ANet(board_size=4, learning_rate=0.001, hidden_layers=[64, 64], activation='relu', optimizer_name='adam', num_cached_nets=10)
-
-# game_state = np.zeros((anet.board_size*anet.board_size*2 + 1,))  # Include the player indicator in the game state array
-
-# # Predict the move distribution for the given game state and current player
-# move_distribution = anet.predict(game_state)
-
-# # Create the ANet instance
-
-# # Define a test game state
-# game_state = np.array([[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,-1]])  # Example input reshaped for prediction
-
-# # Predict the move distribution for the given game state
-# move_distribution = anet.predict(game_state)
-# print("Predicted move distribution:", move_distribution)

@@ -7,14 +7,11 @@ def load_config(config_path):
     with open(config_path, 'r') as file:
         return json.load(file)
 
-
-
 def main():
     config = load_config('config.json')
 
     board_size = config['hex_game']['board_size']
     total_games = config['hex_game']['total_games']
-
     iteration_limit = config['mcts']['iteration_limit']
 
     save_interval = config['training']['save_interval']

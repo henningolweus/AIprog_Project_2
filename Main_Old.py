@@ -60,7 +60,6 @@ def play_hex_with_mcts():
             input_varaible = game.get_nn_input(current_player)
             game.render()
 
-            #print(f"Player {current_player}'s turn.")
             if current_player == 1:
                 move, move_probabilities = mcts.MCTS_search(game, epsilon=epsilon)
                 game.make_move(*move, current_player)

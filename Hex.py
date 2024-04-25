@@ -6,15 +6,8 @@ class HexBoard:
     def __init__(self, size, starting_player=1):
         self.size = size
         self.board = np.zeros((size, size, 2), dtype=int)
-        self.current_player = starting_player  # brukes 
+        self.current_player = starting_player  
 
-    """
-    def __eq__(self, other):
-        if not isinstance(other, HexBoard):
-            return NotImplemented
-        return (np.array_equal(self.board, other.board) and 
-                self.current_player == other.current_player)
-    """
     def __eq__(self, other):
         if not isinstance(other, HexBoard):
             print("Comparison failed: The other object is not an instance of HexBoard.")
@@ -41,7 +34,7 @@ class HexBoard:
         return self.size
 
     def render(self):
-        """Render the board to the console in a more visually intuitive diamond shape."""
+        """Prints current board state in a diamond shape."""
 
         def cell_symbol(cell):
             if np.array_equal(cell, [1, 0]):
@@ -77,7 +70,7 @@ class HexBoard:
 
     
     def get_nn_input_translated(self, current_player):
-        # Flatten the board to create a single array
+        """Returns the input for the neural network in a format that can be used for training."""
         flat_board = np.zeros((self.board.shape[0], self.board.shape[1]), dtype=int)
 
 
@@ -108,23 +101,18 @@ class HexBoard:
     
     def get_result(self, player_just_moved):
         """
-        Determine the game result from the perspective of 'player_just_moved'.
-        :param player_just_moved: The player who made the last move.
-        :return: 1 if 'player_just_moved' has won, -1 otherwise.
+        Determine the game result. +1 if player 1 wins, -1 if player 2 wins, 0 otherwise.
         """
         if self.check_win(player_just_moved) and player_just_moved == 1:
-            return 1  # The player who just moved has won the game.
+            return 1  # Player 1 won
         elif self.check_win(player_just_moved) and player_just_moved == 2:
-            return -1  # The player who just moved has won the game.
+            return -1  # Player 2 won
         else:
             return 0  # Noone won
-
-    # Remember to update or add other necessary methods.
 
     def get_legal_moves(self):
         """
         Returns a list of all legal moves on the board.
-        Legal moves are those where the cell is empty (represented as [0, 0]).
         """
         return [(row, col) for row in range(self.size) for col in range(self.size) if np.all(self.board[row, col] == [0, 0])]
 
@@ -139,20 +127,16 @@ class HexBoard:
         self.board[row, col] = [1, 0] if player == 1 else [0, 1]
         self.current_player = 2 if player == 1 else 1 # Moved the logic inside this function
         return True
+    
     def is_game_over(self):
         """
-        Checks if the game is a draw.
-        A draw occurs if the board is full and no player has won.
-        Returns True if the game is a draw, False otherwise.
+        Checks if the game is over.
         """
         return all(np.all(cell != [0, 0]) for cell in self.board.flatten()) or self.check_win(1) or self.check_win(2)
 
     def check_win(self, player):
         """
-        Checks if the specified player has won.
-        - player: The player to check for a win condition, 1 for Player 1 and 2 for Player 2.
-        Uses a depth-first search (dfs) starting from each piece belonging to the player on their starting edge.
-        Returns True if a connecting path from one side to the opposite side is found, False otherwise.
+        Checks if the current player has won the game.
         """
         visited = set()  # Tracks visited cells to prevent infinite loops during DFS.
         player_id = [1, 0] if player == 1 else [0, 1]  # Identifies the player's pieces on the board.
@@ -168,11 +152,7 @@ class HexBoard:
 
     def dfs(self, row, col, visited, player_id):
         """
-        Depth-first search to find a path from one side to the opposite side for the current player.
-        - row, col: The current cell being visited.
-        - visited: A set of already visited cells to avoid revisiting.
-        - player_id: Identifies the current player's pieces on the board.
-        Returns True if a path to the opposite side is found, False otherwise.
+        Depth-first search to find a path from one edge to the other.
         """
         if (row, col) in visited:
             return False  # Current cell already visited, avoid cycles.

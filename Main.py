@@ -82,7 +82,7 @@ def play_hex_with_mcts():
             
             current_player = 2 if current_player == 1 else 1
         game_counter+=1
-        states, target_probs_dicts = Replay_buffer.sample(len(Replay_buffer))
+        states, target_probs_dicts = Replay_buffer.sample(min(len(Replay_buffer), sample_size))
         target_probs = np.array([Replay_buffer.convert_probs_to_array(prob_dict, board_size = board_size) for prob_dict in target_probs_dicts])
         anet.train(states, target_probs, epochs=num_epochs)
         print("Player 2 win ratio: ", player2_wins/(game_index+1))
