@@ -36,17 +36,23 @@ def main():
 
     replay_buffer = ReplayBuffer()
     replay_buffer.load_from_file('Replay_buffer_seven_NEW200.json')
+    anet.save_net(f"anet_saved_data_seven0.h5")
+    for i in range(1,total_games+1):
+        
+        # Ensure there's enough data in the buffer to sample
+        batch_size = config["training"]["sample_size"]
 
-    # Ensure there's enough data in the buffer to sample
-    batch_size = len(replay_buffer.buffer) -1 # Set a reasonable batch size
-    if len(replay_buffer.buffer) >= batch_size:
-        states, target_probs_dicts = replay_buffer.sample(min(sample_size, len(replay_buffer)))
-        target_probs = np.array([replay_buffer.convert_probs_to_array(prob_dict, board_size = board_size) for prob_dict in target_probs_dicts])
-        anet.train(states, target_probs, epochs=num_epochs)
-        anet.save_net("Loaded_anet_seven200.h5")
-        print("Training complete and model saved.")
-    else:
-        print("Not enough data in replay buffer to perform training.")
+        if len(replay_buffer.buffer) >= batch_size:
+            states, target_probs_dicts = replay_buffer.sample(min(sample_size, len(replay_buffer)))
+            target_probs = np.array([replay_buffer.convert_probs_to_array(prob_dict, board_size = board_size) for prob_dict in target_probs_dicts])
+            anet.train(states, target_probs, epochs=num_epochs)
+            anet.save_net("Loaded_anet_seven200.h5")
+            print("Training complete and model saved.")
+        else:
+            print("Not enough data in replay buffer to perform training.")
+        if i % save_interval == 0:
+            anet.save_net(f"anet_saved_data_seven{i}.h5")
+            print(f"Saved ANET parameters after game {i}.")
 
 if __name__ == "__main__":
     main()

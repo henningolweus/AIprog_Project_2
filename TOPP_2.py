@@ -28,10 +28,7 @@ class TOPP:
         return anets
     
     def select_move_based_on_probabilities(self, legal_moves, move_probabilities, board_size):
-
         move_probabilities = move_probabilities.flatten()
-
-        
         # Convert legal moves to indices in the probability array
         legal_indices = [row * board_size + col for row, col in legal_moves]
         # Filter and normalize probabilities for legal moves
@@ -143,12 +140,8 @@ class TOPP:
             worst_opponent = np.argmin(row)
             print(f"Policy {i+1} performed best against Policy {best_opponent+1} and worst against Policy {worst_opponent+1}")
 
-
-
-
 if __name__ == "__main__":
     saved_models_paths = config['saved_models_paths']
-
     #topp = TOPP(anet_paths=saved_models_paths, board_size=4, G=25, visualise = config['visualization']['show_board'])
     topp = TOPP(
         anet_paths=saved_models_paths,  # Assuming this needs to be dynamically generated during runtime
@@ -156,6 +149,5 @@ if __name__ == "__main__":
         G=config['topp']['games_per_match'],
         visualise=config['visualization']['show_board']
 )
-
     results = topp.round_robin_tournament()
     topp.analyze_results(results)
