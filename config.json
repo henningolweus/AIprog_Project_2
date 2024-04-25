@@ -1,25 +1,26 @@
 {
   "hex_game": {
-    "board_size": 7,
+    "board_size": 6,
     "total_games": 200
   },
   "mcts": {
-    "iteration_limit": 500,
+    "iteration_limit": 400,
     "epsilon_start": 1,
-    "epsilon_end": 0.4,
-    "epsilon_decay": 0.99
+    "epsilon_end": 1,
+    "epsilon_decay": 1 , 
+    "exploration_constant": 1
   },
   "anet": {
-    "learning_rate": 0.005,
+    "learning_rate": 0.01,
     "hidden_layers": [99, 99],
     "activation": "relu",
     "optimizer": "adam",
     "num_cached_nets": 10
   },
   "training": {
-    "sample_size": 1000,
-    "num_epochs": 150,
-    "save_interval": 25
+    "sample_size": 300,
+    "num_epochs": 10,
+    "save_interval": 20
   },
   "topp": {
     "games_per_match": 50
@@ -29,10 +30,10 @@
     "save_anet_parameters": true
   },
   "saved_models_paths": [
-    "anet_params_DEMO0.h5",
-    "anet_params_DEMO50.h5",
-    "anet_params_DEMO100.h5",
-    "anet_params_DEMO150.h5",
-    "anet_params_DEMO200.h5"
+    "anet_five.h5",
+    "anet_five40.h5",
+    "anet_five80.h5",
+    "anet_five160.h5",
+    "anet_five200.h5"
   ]
 }

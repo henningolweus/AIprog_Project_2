@@ -3,6 +3,12 @@ import random
 import math
 from Hex import HexBoard  # Assuming your HexBoard class is in hex_board.py
 from ANET import ANet
+import json
+def load_config(config_path):
+    with open(config_path, 'r') as file:
+        return json.load(file)
+
+config = load_config('config.json')
 
 class Node:
     def __init__(self, game_state, parent=None, move=None):
@@ -11,7 +17,7 @@ class Node:
         self.move = move
         self.children = []
         self.wins = 0
-        self.c = 1
+        self.c = config['mcts']['exploration_constant']
         self.visits = 0
         self.untried_moves = game_state.get_legal_moves()
         self.current_player = game_state.current_player
@@ -269,7 +275,7 @@ class MCTS:
 
 
 class ReplayBuffer:
-    def __init__(self, capacity=10000):
+    def __init__(self, capacity=50000):
         self.capacity = capacity
         self.buffer = []
         self.position = 0
@@ -280,7 +286,8 @@ class ReplayBuffer:
         # Store state and MCTS probability distribution
         self.buffer[self.position] = (state, prob_dist)
         self.position = (self.position + 1) % self.capacity
-
+        #self.buffer.append((state.tolist(), prob_dist))  # Convert state to list for JSON compatibility
+    
     def sample(self, batch_size):
         batch = random.sample(self.buffer, batch_size)
         state, prob_dist = map(np.stack, zip(*batch))
@@ -301,7 +308,25 @@ class ReplayBuffer:
             probs_array[index] = prob
         
         return probs_array
-    
+
+    def save_to_file(self, filename):
+        with open(filename, 'w') as file:
+            # Prepare data for JSON serialization, converting numpy arrays to lists
+            converted_buffer = [
+                (state.tolist(), {str(key): value for key, value in prob_dist.items()}) 
+                for state, prob_dist in self.buffer
+            ]
+            json.dump(converted_buffer, file, indent=4)
+
+    def load_from_file(self, filename):
+        with open(filename, 'r') as file:
+            data = json.load(file)
+            # Restore the data back to its original numpy array form and convert string keys back to tuple
+            self.buffer = [
+                (np.array(state), {eval(key): value for key, value in prob_dist.items()})
+                for state, prob_dist in data
+            ]
+
     def __str__(self):
         buffer_contents = f'Replay Buffer Size: {len(self.buffer)}/{self.capacity}\n'
         buffer_contents += 'Contents:\n'
